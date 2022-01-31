@@ -1,0 +1,52 @@
+#SRR dosyalarını 2 parça ise split files, değilse normal olarak fastq sıkıştırılmış olarak indiriyoruz. Burada parallel indirmeyi kullandım #hızlı olacağı için. Bunun için anacondayı indirip conda ile parallel-fastq-dump ı indiriyoruz. 
+#parallel-fastq-dump --sra-id SRR17055454 --threads 8 --split-files –gzip
+
+
+parallel-fastq-dump --sra-id SRR17055455 --threads 8 --split-files --gzip
+parallel-fastq-dump --sra-id SRR17055456 --threads 8 --split-files --gzip
+parallel-fastq-dump --sra-id SRR17055457 --threads 8 --split-files --gzip
+parallel-fastq-dump --sra-id SRR17055458 --threads 8 --split-files --gzip
+parallel-fastq-dump --sra-id SRR17055459 --threads 8 --split-files --gzip
+
+
+#Daha sonra indirdiğimiz dosyaları 
+fastqc *.fastq.gz
+#Komutuyla .html analiz dosyalarını oluşturuyoruz.
+
+multiqc .
+ 
+~~~adapter trim~~~
+
+flexbar --adapter-min-overlap 7 --adapter-trim-end RIGHT --adapters /media/esra/new/workspace/rnaseq/refs/illumina_multiplex.fa --pre-trim-left 13 --max-uncalled 300 --min-read-length 25 --threads 8 --zip-output GZ --reads /media/esra/new/workspace/rnaseq/data/SRR17055454_1.fastq.gz --reads2 /media/esra/new/workspace/rnaseq/data/SRR17055454_2.fastq.gz --target /media/esra/new/workspace/rnaseq/data/trimmed/MDA-MB-231-control-rep1
+flexbar --adapter-min-overlap 7 --adapter-trim-end RIGHT --adapters /media/esra/new/workspace/rnaseq/refs/illumina_multiplex.fa --pre-trim-left 13 --max-uncalled 300 --min-read-length 25 --threads 8 --zip-output GZ --reads /media/esra/new/workspace/rnaseq/data/SRR17055455_1.fastq.gz --reads2 /media/esra/new/workspace/rnaseq/data/SRR17055455_2.fastq.gz --target /media/esra/new/workspace/rnaseq/data/trimmed/MDA-MB-231-control-rep2
+flexbar --adapter-min-overlap 7 --adapter-trim-end RIGHT --adapters /media/esra/new/workspace/rnaseq/refs/illumina_multiplex.fa --pre-trim-left 13 --max-uncalled 300 --min-read-length 25 --threads 8 --zip-output GZ --reads /media/esra/new/workspace/rnaseq/data/SRR17055456_1.fastq.gz --reads2 /media/esra/new/workspace/rnaseq/data/SRR17055456_2.fastq.gz --target /media/esra/new/workspace/rnaseq/data/trimmed/MDA-MB-231-control-rep3
+flexbar --adapter-min-overlap 7 --adapter-trim-end RIGHT --adapters /media/esra/new/workspace/rnaseq/refs/illumina_multiplex.fa --pre-trim-left 13 --max-uncalled 300 --min-read-length 25 --threads 8 --zip-output GZ --reads /media/esra/new/workspace/rnaseq/data/SRR17055457_1.fastq.gz --reads2 /media/esra/new/workspace/rnaseq/data/SRR17055457_2.fastq.gz --target /media/esra/new/workspace/rnaseq/data/trimmed/MDA-MB-231-UBE3D-KD-rep1
+flexbar --adapter-min-overlap 7 --adapter-trim-end RIGHT --adapters /media/esra/new/workspace/rnaseq/refs/illumina_multiplex.fa --pre-trim-left 13 --max-uncalled 300 --min-read-length 25 --threads 8 --zip-output GZ --reads /media/esra/new/workspace/rnaseq/data/SRR17055458_1.fastq.gz --reads2 /media/esra/new/workspace/rnaseq/data/SRR17055458_2.fastq.gz --target /media/esra/new/workspace/rnaseq/data/trimmed/MDA-MB-231-UBE3D-KD-rep2
+flexbar --adapter-min-overlap 7 --adapter-trim-end RIGHT --adapters /media/esra/new/workspace/rnaseq/refs/illumina_multiplex.fa --pre-trim-left 13 --max-uncalled 300 --min-read-length 25 --threads 8 --zip-output GZ --reads /media/esra/new/workspace/rnaseq/data/SRR17055459_1.fastq.gz --reads2 /media/esra/new/workspace/rnaseq/data/SRR17055459_2.fastq.gz --target /media/esra/new/workspace/rnaseq/data/trimmed/MDA-MB-231-UBE3D-KD-rep3
+
+fastqc *.fastq.gz
+
+multiqc .
+
+
+~~~Alignment~~~
+
+hisat2 -p 8 --rg-id=MDA-MB-231-control_Rep1 --rg SM:MDA-MB-231-control --rg PL:ILLUMINA -x /media/esra/new/workspace/rnaseq/refs/genome_snp_tran --dta --rna-strandness RF -1 /media/esra/new/workspace/rnaseq/data/trimmed/MDA-MB-231-control-rep1_1.fastq.gz -2 /media/esra/new/workspace/rnaseq/data/trimmed/MDA-MB-231-control-rep1_2.fastq.gz -S ./MDA-MB-231-control-rep1.sam
+
+Warning: --rg was specified without --rg-id also being specified.  @RG line is not printed unless --rg-id is specified.
+
+
+
+java -Xmx2g -jar $RNA_HOME/student_tools/picard.jar MergeSamFiles OUTPUT=MDA-MB-231-control-rep3.bam INPUT=MDA-MB-231-control-rep1.bam INPUT=MDA-MB-231-control-rep2.bam INPUT=-rep3.bam
+
+
+java -Xmx2g -jar $RNA_HOME/student_tools/picard.jar MergeSamFiles OUTPUT=MDA-MB-231-UBE3D-KD.bam INPUT=MDA-MB-231-UBE3D-KD-rep1.bam INPUT=MDA-MB-231-UBE3D-KD-rep2.bam INPUT=MDA-MB-231-UBE3D-KD-rep3.bam
+
+
+
+
+
+
+
+
+

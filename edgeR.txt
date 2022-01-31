@@ -1,0 +1,117 @@
+"""
+edgeR is a bioconductor package designed specifically for differential expression of count-based RNA-seq data
+This is an alternative to using stringtie/ballgown to find differentially expressed genes
+"""
+
+cd $RNA_HOME/
+mkdir -p de/htseq_counts
+cd de/htseq_counts
+perl -ne 'if ($_ =~ /gene_id\s\"(ENSG\S+)\"\;/) { $id = $1; $name = undef; if ($_ =~ /gene_name\s\"(\S+)"\;/) { $name = $1; }; }; if ($id && $name) {print "$id\t$name\n";} if ($_=~/gene_id\s\"(ERCC\S+)\"/){print "$1\t$1\n";}' $RNA_REF_GTF | sort | uniq > ENSG_ID2Name.txt
+
+head ENSG_ID2Name.txt
+
+
+number of unique Ensembl Gene IDs and symbols
+cut -f 1 ENSG_ID2Name.txt | sort | uniq | wc
+60676   60676  970816
+
+cut -f 2 ENSG_ID2Name.txt | sort | uniq | wc
+60642   60642  540090
+
+cut -f 2 ENSG_ID2Name.txt | sort | uniq -c | sort -r | head
+      2 ZNF883
+      2 TMSB15B
+      2 TBCE
+      2 SOD2
+      2 SNORD3D
+      2 SNORD38B
+      2 SNORA50A
+      2 SNORA17B
+      2 SNORA16A
+
+
+~~~Rcodes~~~
+
+working_dir = "/media/esra/new/workspace/rnaseq/de/htseq_counts
+setwd(working_dir)
+
+mapping=read.table("/media/esra/new/workspace/rnaseq/de/htseq_counts/ENSG_ID2Name.txt", header=FALSE, stringsAsFactors=FALSE, row.names=1)
+
+rawdata=read.table("/media/esra/new/workspace/rnaseq/expression/htseq_counts/gene_read_counts_table_all_final.tsv", header=TRUE, stringsAsFactors=FALSE, row.names=1)
+
+dim(rawdata)
+60676     6
+
+# Running edgeR #
+library('edgeR')
+class <- factor( c( rep("MDA-MB-231-control",3), rep("MDA-MB-231-UBE3D-KD",3) ))
+# Get common gene names
+genes=rownames(rawdata)
+gene_names=mapping[genes,1]
+
+# Make DGEList object
+y <- DGEList(counts=rawdata, genes=genes, group=class)
+nrow(y)
+60676
+
+# TMM Normalization
+y <- calcNormFactors(y)
+
+# Estimate dispersion
+y <- estimateCommonDisp(y, verbose=TRUE)
+Disp = 0.00644 , BCV = 0.0803 
+
+y <- estimateTagwiseDisp(y)
+
+# Differential expression test
+et <- exactTest(y)
+
+#for top20
+topTags(et, n=20, adjust.method="BH", sort.by="PValue") 
+
+# Print number of up/down significant genes at FDR = 0.05 significance level
+summary(de <- decideTestsDGE(et, p=.05))
+
+MDA-MB-231-UBE3D-KD-MDA-MB-231-control
+Down                                     2256
+NotSig                                  56282
+Up                                       2138
+
+detags <- rownames(y)[as.logical(de)]
+
+
+# Output DE genes
+# Matrix of significantly DE genes
+
+mat <- cbind(
+ genes,gene_names,
+ sprintf('%0.3f',log10(et$table$PValue)),
+ sprintf('%0.3f',et$table$logFC)
+)[as.logical(de),]
+
+# Order by log fold change
+
+o <- order(et$table$logFC[as.logical(de)],decreasing=TRUE)
+mat <- mat[o,]
+
+# Save table
+write.table(mat, file="DE_genes.txt", quote=FALSE, row.names=FALSE, sep="\t")
+
+#To exit R type the following
+quit(save="no")
+
+~~~~bash~~~
+compare the sigDE genes to those saved earlier from cuffdiff
+cat $RNA_HOME/de/ballgown/ref_only/DE_genes.txt
+cat $RNA_HOME/de/htseq_counts/DE_genes.txt
+
+Pull out the gene IDs
+cd $RNA_HOME/de/
+cut -f 1 $RNA_HOME/de/ballgown/ref_only/DE_genes.txt | sort  > ballgown_DE_gene_symbols.txt
+cut -f 2 $RNA_HOME/de/htseq_counts/DE_genes.txt | sort > htseq_counts_edgeR_DE_gene_symbols.txt
+
+
+
+
+
+

@@ -1,0 +1,50 @@
+/media/esra/new/workspace/rnaseq/student_tools/htseq-release_0.11.0/scripts/htseq-count --format bam --order pos --mode intersection-strict --stranded reverse --minaqual 1 --type exon --idattr gene_id $RNA_ALIGN_DIR/MDA-MB-231-control-rep1.bam $RNA_REF_GTF > MDA-MB-231-control-rep1_gene.tsv
+
+Warning: Mate records missing for 14000 records; first such record: <SAM_Alignment object: Paired-end read 'SRR17055454.1217334' aligned to 1:[629093,629155)/+>.
+26833251 SAM alignment pairs processed.
+
+/media/esra/new/workspace/rnaseq/student_tools/htseq-release_0.11.0/scripts/htseq-count --format bam --order pos --mode intersection-strict --stranded reverse --minaqual 1 --type exon --idattr gene_id $RNA_ALIGN_DIR/MDA-MB-231-control-rep2.bam $RNA_REF_GTF > MDA-MB-231-control-rep2_gene.tsv
+
+Warning: Mate records missing for 15194 records; first such record: <SAM_Alignment object: Paired-end read 'SRR17055455.20666789' aligned to 1:[629118,629180)/+>.
+28142352 SAM alignment pairs processed.
+
+/media/esra/new/workspace/rnaseq/student_tools/htseq-release_0.11.0/scripts/htseq-count --format bam --order pos --mode intersection-strict --stranded reverse --minaqual 1 --type exon --idattr gene_id $RNA_ALIGN_DIR/MDA-MB-231-control-rep3.bam $RNA_REF_GTF > MDA-MB-231-control-rep3_gene.tsv
+
+Warning: Mate records missing for 22360 records; first such record: <SAM_Alignment object: Paired-end read 'SRR17055456.15849535' aligned to 1:[139263,139325)/+>.
+29500000 SAM alignment record pairs processed.
+29512057 SAM alignment pairs processed.
+
+
+/media/esra/new/workspace/rnaseq/student_tools/htseq-release_0.11.0/scripts/htseq-count --format bam --order pos --mode intersection-strict --stranded reverse --minaqual 1 --type exon --idattr gene_id $RNA_ALIGN_DIR/MDA-MB-231-UBE3D-KD-rep1.bam $RNA_REF_GTF > MDA-MB-231-UBE3D-KD-rep1_gene.tsv
+
+Warning: Mate records missing for 25230 records; first such record: <SAM_Alignment object: Paired-end read 'SRR17055457.11634316' aligned to 1:[159082,159144)/+>.
+26626097 SAM alignment pairs processed.
+
+/media/esra/new/workspace/rnaseq/student_tools/htseq-release_0.11.0/scripts/htseq-count --format bam --order pos --mode intersection-strict --stranded reverse --minaqual 1 --type exon --idattr gene_id $RNA_ALIGN_DIR/MDA-MB-231-UBE3D-KD-rep2.bam $RNA_REF_GTF > MDA-MB-231-UBE3D-KD-rep2_gene.tsv
+
+Warning: Mate records missing for 11946 records; first such record: <SAM_Alignment object: Paired-end read 'SRR17055458.23248539' aligned to 1:[629093,629155)/+>.
+25884071 SAM alignment pairs processed.
+
+
+/media/esra/new/workspace/rnaseq/student_tools/htseq-release_0.11.0/scripts/htseq-count --format bam --order pos --mode intersection-strict --stranded reverse --minaqual 1 --type exon --idattr gene_id $RNA_ALIGN_DIR/MDA-MB-231-UBE3D-KD-rep3.bam $RNA_REF_GTF > MDA-MB-231-UBE3D-KD-rep3_gene.tsv
+
+Warning: Mate records missing for 13788 records; first such record: <SAM_Alignment object: Paired-end read 'SRR17055459.23015532' aligned to 1:[152561,152623)/+>.
+27757210 SAM alignment pairs processed.
+
+
+cd $RNA_HOME/expression/htseq_counts/
+
+join MDA-MB-231-control-rep1_gene.tsv MDA-MB-231-control-rep2_gene.tsv | join - MDA-MB-231-control-rep3_gene.tsv | join - MDA-MB-231-UBE3D-KD-rep1_gene.tsv | join - MDA-MB-231-UBE3D-KD-rep2_gene.tsv | join - MDA-MB-231-UBE3D-KD-rep3_gene.tsv > gene_read_counts_table_all.tsv
+
+echo "GeneID MDA-MB-231-control-rep1 MDA-MB-231-control-rep2 MDA-MB-231-control-rep3 MDA-MB-231-UBE3D-KD-rep1 MDA-MB-231-UBE3D-KD-rep2 MDA-MB-231-UBE3D-KD-rep3" > header.txt
+cat header.txt gene_read_counts_table_all.tsv | grep -v "__" | perl -ne 'chomp $_; $_ =~ s/\s+/\t/g; print "$_\n"' > gene_read_counts_table_all_final.tsv
+
+rm -f gene_read_counts_table_all.tsv header.txt
+head gene_read_counts_table_all_final.tsv
+
+
+
+
+
+
+
